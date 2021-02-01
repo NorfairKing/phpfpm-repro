@@ -16,20 +16,28 @@ in
       machine.wait_for_unit("nginx.service")
       machine.wait_for_unit("phpfpm.slice")
       machine.wait_for_unit("phpfpm.target")
-      machine.wait_for_unit("phpfpm-phpdemo1.service")
-      machine.wait_for_unit("phpfpm-phpdemo2.service")
+      machine.wait_for_unit("phpfpm.service")
 
 
       def su(user, cmd):
           return f"su - {user} -c {quote(cmd)}"
 
 
-      output = machine.succeed(su("root", "ps aux | grep php-fpm:master | wc -l"))
+      output = machine.succeed(su("root", "systemctl status"))
+
+      print(output)
+
+      (ec, output) = machine.execute("ps aux | grep 'php-fpm: master'")
+
+      print(output)
+
+      (ec, output) = machine.execute("ps aux | grep 'php-fpm: master' | wc -l")
 
       print(output)
 
       # The output will show both the grep process and the phpfpm master processes.
       # We should find two: one grep process and one phpfpm master process
+      assert ec == 0
       assert output == "2\n"
     '';
 })
